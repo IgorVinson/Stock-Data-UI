@@ -21,7 +21,6 @@ function App() {
   const [error, setError] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [fullscreenChart, setFullscreenChart] = useState(null);
-  const [zoomLevel, setZoomLevel] = useState(1);
 
   // Set default dates when component mounts
   useEffect(() => {
@@ -47,7 +46,7 @@ function App() {
   // Fetch popular stocks for autocomplete
   const fetchPopularStocks = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/stocks');
+      const response = await fetch('http://igorvinson.pythonanywhere.com/api/stocks');
       if (response.ok) {
         const data = await response.json();
         setPopularStocks(data);
@@ -72,7 +71,7 @@ function App() {
     setResults(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/analyze', {
+      const response = await fetch('http://igorvinson.pythonanywhere.com/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,21 +116,11 @@ function App() {
   // Function to open chart in fullscreen
   const openFullscreen = chartData => {
     setFullscreenChart(chartData);
-    setZoomLevel(1);
   };
 
   // Function to close fullscreen
   const closeFullscreen = () => {
     setFullscreenChart(null);
-  };
-
-  // Function to handle zoom
-  const handleZoom = direction => {
-    if (direction === 'in') {
-      setZoomLevel(prev => Math.min(prev + 0.2, 3));
-    } else {
-      setZoomLevel(prev => Math.max(prev - 0.2, 0.5));
-    }
   };
 
   // Function to convert API response to chart data
