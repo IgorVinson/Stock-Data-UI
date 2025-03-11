@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { Dialog, IconButton, Zoom } from '@mui/material';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import ZoomOutIcon from '@mui/icons-material/ZoomOut';
+import CloseIcon from '@mui/icons-material/Close';
+import Chart from './components/Chart';
+import Plot from 'react-plotly.js';
 
 function App() {
   // State variables
@@ -13,6 +20,8 @@ function App() {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [fullscreenChart, setFullscreenChart] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   // Set default dates when component mounts
   useEffect(() => {
@@ -58,13 +67,6 @@ function App() {
   // Handle form submission
   const handleSubmit = async e => {
     e.preventDefault();
-
-    // Validate inputs
-    if (!ticker) {
-      setError('Please enter a ticker symbol');
-      return;
-    }
-
     setLoading(true);
     setError(null);
     setResults(null);
@@ -84,15 +86,24 @@ function App() {
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to analyze stock data');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to analyze stock data');
       }
+
+      // Get the response as text first
+      const responseText = await response.text();
+
+      // Try to parse the JSON, replacing NaN with null
+      const sanitizedText = responseText.replace(/NaN/g, 'null');
+      const data = JSON.parse(sanitizedText);
 
       setResults(data);
     } catch (err) {
-      setError(err.message);
+      console.error('Error:', err);
+      setError(
+        err.message || 'An error occurred while analyzing the stock data'
+      );
     } finally {
       setLoading(false);
     }
@@ -101,6 +112,128 @@ function App() {
   const selectStock = stock => {
     setTicker(stock.symbol);
     setShowSuggestions(false);
+  };
+
+  // Function to open chart in fullscreen
+  const openFullscreen = chartData => {
+    setFullscreenChart(chartData);
+    setZoomLevel(1);
+  };
+
+  // Function to close fullscreen
+  const closeFullscreen = () => {
+    setFullscreenChart(null);
+  };
+
+  // Function to handle zoom
+  const handleZoom = direction => {
+    if (direction === 'in') {
+      setZoomLevel(prev => Math.min(prev + 0.2, 3));
+    } else {
+      setZoomLevel(prev => Math.max(prev - 0.2, 0.5));
+    }
+  };
+
+  // Function to convert API response to chart data
+  const getChartDataFromResults = () => {
+    if (!results) return [];
+
+    // Safely access arrays and handle missing data
+    const dates = results.dates || [];
+    const prices = results.prices || [];
+    const shortMa = results.short_ma || [];
+    const longMa = results.long_ma || [];
+    const marketReturns = results.market_returns || [];
+    const strategyReturns = results.strategy_returns || [];
+
+    // Buy and sell signals
+    const buySignalDates = results.buy_signals?.dates || [];
+    const buySignalPrices = results.buy_signals?.prices || [];
+    const sellSignalDates = results.sell_signals?.dates || [];
+    const sellSignalPrices = results.sell_signals?.prices || [];
+
+    return [
+      {
+        title: 'Price and Moving Averages',
+        data: [
+          {
+            x: dates,
+            y: prices,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Price',
+            line: { color: '#2196f3', width: 2 },
+          },
+          {
+            x: dates,
+            y: shortMa,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Short-term MA',
+            line: { color: '#4caf50', width: 1.5, dash: 'dot' },
+          },
+          {
+            x: dates,
+            y: longMa,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Long-term MA',
+            line: { color: '#ff9800', width: 1.5, dash: 'dot' },
+          },
+          {
+            x: buySignalDates,
+            y: buySignalPrices,
+            type: 'scatter',
+            mode: 'markers',
+            name: 'Buy Signal',
+            marker: { color: '#4caf50', size: 10, symbol: 'triangle-up' },
+          },
+          {
+            x: sellSignalDates,
+            y: sellSignalPrices,
+            type: 'scatter',
+            mode: 'markers',
+            name: 'Sell Signal',
+            marker: { color: '#f44336', size: 10, symbol: 'triangle-down' },
+          },
+        ],
+        layout: {
+          title: 'Price and Moving Averages',
+          xaxis: { title: 'Date' },
+          yaxis: { title: 'Price ($)' },
+          legend: { orientation: 'h', y: -0.2 },
+          hovermode: 'closest',
+        },
+      },
+      {
+        title: 'Cumulative Returns',
+        data: [
+          {
+            x: dates,
+            y: marketReturns.map(val => (isNaN(val) ? null : val * 100)),
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Market Return',
+            line: { color: '#2196f3', width: 2 },
+          },
+          {
+            x: dates,
+            y: strategyReturns.map(val => (isNaN(val) ? null : val * 100)),
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Strategy Return',
+            line: { color: '#f44336', width: 2 },
+          },
+        ],
+        layout: {
+          title: 'Cumulative Returns (%)',
+          xaxis: { title: 'Date' },
+          yaxis: { title: 'Return (%)' },
+          legend: { orientation: 'h', y: -0.2 },
+          hovermode: 'closest',
+        },
+      },
+    ];
   };
 
   return (
@@ -211,77 +344,87 @@ function App() {
           <div className='results-container'>
             <h2>Analysis Results for {ticker}</h2>
 
-            <div className='summary-card'>
+            <div className='summary-container'>
               <h3>Performance Summary</h3>
               <div className='summary-grid'>
                 <div className='summary-item'>
-                  <span className='label'>Period:</span>
-                  <span className='value'>
+                  <span className='summary-label'>Period:</span>
+                  <span className='summary-value'>
                     {results.summary.period_start} to{' '}
                     {results.summary.period_end}
                   </span>
                 </div>
                 <div className='summary-item'>
-                  <span className='label'>Total Trades:</span>
-                  <span className='value'>{results.summary.total_trades}</span>
-                </div>
-                <div className='summary-item'>
-                  <span className='label'>Buy Signals:</span>
-                  <span className='value'>{results.summary.buy_signals}</span>
-                </div>
-                <div className='summary-item'>
-                  <span className='label'>Sell Signals:</span>
-                  <span className='value'>{results.summary.sell_signals}</span>
-                </div>
-                <div className='summary-item'>
-                  <span className='label'>Market Return:</span>
-                  <span className='value'>
-                    {results.summary.market_return}%
+                  <span className='summary-label'>Market Return:</span>
+                  <span className='summary-value'>
+                    {results.summary.market_return.toFixed(2)}%
                   </span>
                 </div>
                 <div className='summary-item'>
-                  <span className='label'>Strategy Return:</span>
-                  <span className='value'>
-                    {results.summary.strategy_return}%
+                  <span className='summary-label'>Strategy Return:</span>
+                  <span className='summary-value'>
+                    {results.summary.strategy_return.toFixed(2)}%
                   </span>
                 </div>
                 <div className='summary-item'>
-                  <span className='label'>Annual Market Return:</span>
-                  <span className='value'>
-                    {results.summary.market_annual_return}%
+                  <span className='summary-label'>Annual Market Return:</span>
+                  <span className='summary-value'>
+                    {results.summary.market_annual_return.toFixed(2)}%
                   </span>
                 </div>
                 <div className='summary-item'>
-                  <span className='label'>Annual Strategy Return:</span>
-                  <span className='value'>
-                    {results.summary.strategy_annual_return}%
+                  <span className='summary-label'>Annual Strategy Return:</span>
+                  <span className='summary-value'>
+                    {results.summary.strategy_annual_return.toFixed(2)}%
                   </span>
                 </div>
                 <div className='summary-item'>
-                  <span className='label'>Sharpe Ratio:</span>
-                  <span className='value'>{results.summary.sharpe_ratio}</span>
+                  <span className='summary-label'>Sharpe Ratio:</span>
+                  <span className='summary-value'>
+                    {results.summary.sharpe_ratio.toFixed(2)}
+                  </span>
+                </div>
+                <div className='summary-item'>
+                  <span className='summary-label'>Total Trades:</span>
+                  <span className='summary-value'>
+                    {results.summary.total_trades}
+                  </span>
+                </div>
+                <div className='summary-item'>
+                  <span className='summary-label'>Buy Signals:</span>
+                  <span className='summary-value'>
+                    {results.summary.buy_signals}
+                  </span>
+                </div>
+                <div className='summary-item'>
+                  <span className='summary-label'>Sell Signals:</span>
+                  <span className='summary-value'>
+                    {results.summary.sell_signals}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className='charts-container'>
-              <div className='chart-card'>
-                <h3>Price and Signals</h3>
-                <img
-                  src={`data:image/png;base64,${results.signals_plot}`}
-                  alt='Stock Price and Signals'
-                  className='chart-image'
-                />
-              </div>
-
-              <div className='chart-card'>
-                <h3>Cumulative Returns</h3>
-                <img
-                  src={`data:image/png;base64,${results.returns_plot}`}
-                  alt='Cumulative Returns'
-                  className='chart-image'
-                />
-              </div>
+            <div className='charts-gallery'>
+              {getChartDataFromResults().map((chart, index) => (
+                <div className='chart-container' key={index}>
+                  <h3>{chart.title}</h3>
+                  <div className='chart-wrapper'>
+                    <Chart
+                      data={chart.data}
+                      layout={chart.layout}
+                      config={{ responsive: true, displayModeBar: false }}
+                      onFullscreen={() => openFullscreen(chart)}
+                    />
+                  </div>
+                  <IconButton
+                    className='chart-fullscreen-button'
+                    onClick={() => openFullscreen(chart)}
+                  >
+                    <FullscreenIcon />
+                  </IconButton>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -290,6 +433,40 @@ function App() {
       <footer>
         <p>Stock Data Analysis Tool - &copy; 2025</p>
       </footer>
+
+      {/* Fullscreen Dialog */}
+      <Dialog
+        fullScreen
+        open={fullscreenChart !== null}
+        onClose={closeFullscreen}
+        TransitionComponent={Zoom}
+      >
+        <div className='fullscreen-chart-container'>
+          <div className='fullscreen-controls'>
+            <IconButton onClick={() => handleZoom('in')}>
+              <ZoomInIcon />
+            </IconButton>
+            <IconButton onClick={() => handleZoom('out')}>
+              <ZoomOutIcon />
+            </IconButton>
+            <IconButton onClick={closeFullscreen}>
+              <CloseIcon />
+            </IconButton>
+          </div>
+          <div
+            className='fullscreen-chart'
+            style={{ transform: `scale(${zoomLevel})` }}
+          >
+            {fullscreenChart && (
+              <Chart
+                data={fullscreenChart.data}
+                layout={fullscreenChart.layout}
+                config={{ responsive: true, displayModeBar: true }}
+              />
+            )}
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
