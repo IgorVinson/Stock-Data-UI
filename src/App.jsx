@@ -238,12 +238,7 @@ function App() {
 
   return (
     <div className='app-container'>
-      {/* Main Content */}
-      <div className='main-content full-width'>
-        <header className='main-header'>
-          <h1>Stock Data Analysis</h1>
-        </header>
-
+      <div className='main-content'>
         <div className='dashboard'>
           {/* Analysis Form Card */}
           <div className='card analysis-form-card'>
@@ -355,7 +350,32 @@ function App() {
 
           {results && (
             <>
-              {/* Stats Cards */}
+              {/* Charts Gallery - Now first */}
+              <div className='charts-gallery'>
+                {getChartDataFromResults().map((chart, index) => (
+                  <div className='card chart-card' key={index}>
+                    <div className='chart-header'>
+                      <h3>{chart.title}</h3>
+                      <IconButton
+                        className='chart-fullscreen-button'
+                        onClick={() => openFullscreen(chart)}
+                      >
+                        <FullscreenIcon />
+                      </IconButton>
+                    </div>
+                    <div className='chart-wrapper'>
+                      <Chart
+                        data={chart.data}
+                        layout={chart.layout}
+                        config={{ responsive: true, displayModeBar: true }}
+                        onFullscreen={() => openFullscreen(chart)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Stats Cards - Now second */}
               <div className='stats-cards'>
                 <div className='card stat-card'>
                   <div className='stat-icon'>📈</div>
@@ -396,7 +416,7 @@ function App() {
                 </div>
               </div>
 
-              {/* Summary Card */}
+              {/* Summary Card - Now third/last */}
               <div className='card summary-card'>
                 <h2 className='card-title'>Performance Summary for {ticker}</h2>
                 <div className='summary-grid'>
@@ -434,31 +454,6 @@ function App() {
                     </span>
                   </div>
                 </div>
-              </div>
-
-              {/* Charts Gallery */}
-              <div className='charts-gallery'>
-                {getChartDataFromResults().map((chart, index) => (
-                  <div className='card chart-card' key={index}>
-                    <div className='chart-header'>
-                      <h3>{chart.title}</h3>
-                      <IconButton
-                        className='chart-fullscreen-button'
-                        onClick={() => openFullscreen(chart)}
-                      >
-                        <FullscreenIcon />
-                      </IconButton>
-                    </div>
-                    <div className='chart-wrapper'>
-                      <Chart
-                        data={chart.data}
-                        layout={chart.layout}
-                        config={{ responsive: true, displayModeBar: true }}
-                        onFullscreen={() => openFullscreen(chart)}
-                      />
-                    </div>
-                  </div>
-                ))}
               </div>
             </>
           )}
