@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Dialog, IconButton, Zoom } from '@mui/material';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import ZoomInIcon from '@mui/icons-material/ZoomIn';
-import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import CloseIcon from '@mui/icons-material/Close';
 import Chart from './components/Chart';
 import Plot from 'react-plotly.js';
@@ -46,7 +44,9 @@ function App() {
   // Fetch popular stocks for autocomplete
   const fetchPopularStocks = async () => {
     try {
-      const response = await fetch('http://igorvinson.pythonanywhere.com/api/stocks');
+      const response = await fetch(
+        'http://igorvinson.pythonanywhere.com/api/stocks'
+      );
       if (response.ok) {
         const data = await response.json();
         setPopularStocks(data);
@@ -71,19 +71,22 @@ function App() {
     setResults(null);
 
     try {
-      const response = await fetch('http://igorvinson.pythonanywhere.com/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ticker,
-          startDate,
-          endDate,
-          shortWindow,
-          longWindow,
-        }),
-      });
+      const response = await fetch(
+        'http://igorvinson.pythonanywhere.com/api/analyze',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ticker,
+            startDate,
+            endDate,
+            shortWindow,
+            longWindow,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
