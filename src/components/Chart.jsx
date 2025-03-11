@@ -15,6 +15,9 @@ const Chart = ({ data, layout, config, onFullscreen }) => {
   const defaultConfig = {
     responsive: true,
     displayModeBar: true,
+    displaylogo: false,
+    scrollZoom: true,
+    modeBarButtonsToAdd: ['drawline', 'eraseshape'],
     ...config
   };
   
