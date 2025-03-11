@@ -469,25 +469,45 @@ function App() {
       >
         <div className='fullscreen-chart-container'>
           <div className='fullscreen-controls'>
-            <IconButton onClick={() => handleZoom('in')}>
-              <ZoomInIcon />
-            </IconButton>
-            <IconButton onClick={() => handleZoom('out')}>
-              <ZoomOutIcon />
-            </IconButton>
             <IconButton onClick={closeFullscreen}>
               <CloseIcon />
             </IconButton>
           </div>
-          <div
-            className='fullscreen-chart'
-            style={{ transform: `scale(${zoomLevel})` }}
-          >
+          <div className='fullscreen-chart'>
             {fullscreenChart && (
-              <Chart
+              <Plot
                 data={fullscreenChart.data}
-                layout={fullscreenChart.layout}
-                config={{ responsive: true, displayModeBar: true }}
+                layout={{
+                  ...fullscreenChart.layout,
+                  autosize: true,
+                  width: window.innerWidth * 0.95,
+                  height: window.innerHeight * 0.9,
+                  title: null,
+                  margin: { l: 60, r: 30, t: 10, b: 50 },
+                  xaxis: {
+                    ...fullscreenChart.layout?.xaxis,
+                    automargin: true,
+                    tickfont: { size: 14 },
+                  },
+                  yaxis: {
+                    ...fullscreenChart.layout?.yaxis,
+                    automargin: true,
+                    tickfont: { size: 14 },
+                  },
+                }}
+                config={{
+                  responsive: true,
+                  displayModeBar: true,
+                  displaylogo: false,
+                  scrollZoom: true,
+                  showLink: false,
+                  modeBarButtonsToRemove: [],
+                }}
+                style={{
+                  width: '95vw',
+                  height: '90vh',
+                }}
+                useResizeHandler={true}
               />
             )}
           </div>

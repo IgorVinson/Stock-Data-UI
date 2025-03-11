@@ -9,20 +9,20 @@ const Chart = ({ data, layout, config, onFullscreen }) => {
     plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI, Roboto, Arial, sans-serif' },
     modebar: { bgcolor: 'transparent' },
-    ...layout
+    ...layout,
   };
-  
+
   const defaultConfig = {
     responsive: true,
     displayModeBar: true,
     displaylogo: false,
     scrollZoom: true,
-    modeBarButtonsToAdd: ['drawline', 'eraseshape'],
-    ...config
+    modeBarButtonsToRemove: [],
+    ...config,
   };
-  
+
   return (
-    <div className="chart-component">
+    <div className='chart-component'>
       <Plot
         data={data}
         layout={defaultLayout}
@@ -34,4 +34,4 @@ const Chart = ({ data, layout, config, onFullscreen }) => {
   );
 };
 
-export default Chart; 
+export default Chart;
