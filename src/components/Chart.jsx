@@ -8,12 +8,13 @@ const Chart = ({ data, layout, config, onFullscreen }) => {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
     font: { family: 'Segoe UI, Roboto, Arial, sans-serif' },
+    modebar: { bgcolor: 'transparent' },
     ...layout
   };
   
   const defaultConfig = {
     responsive: true,
-    displayModeBar: false,
+    displayModeBar: true,
     ...config
   };
   

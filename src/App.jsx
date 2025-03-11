@@ -237,202 +237,233 @@ function App() {
   };
 
   return (
-    <div className='App'>
-      <header className='App-header'>
-        <h1>Stock Data Analysis and Signal Generator</h1>
-      </header>
+    <div className='app-container'>
+      {/* Main Content */}
+      <div className='main-content full-width'>
+        <header className='main-header'>
+          <h1>Stock Data Analysis</h1>
+        </header>
 
-      <main className='container'>
-        <form onSubmit={handleSubmit} className='analysis-form'>
-          <div className='form-group'>
-            <label htmlFor='ticker'>Stock Ticker Symbol:</label>
-            <div className='autocomplete-container'>
-              <input
-                type='text'
-                id='ticker'
-                value={ticker}
-                onChange={e => {
-                  setTicker(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                placeholder='Enter ticker symbol (e.g., AAPL, MSFT)'
-              />
-              {showSuggestions && ticker.length > 0 && (
-                <ul className='suggestions-list'>
-                  {filteredStocks.length > 0 ? (
-                    filteredStocks.map(stock => (
-                      <li key={stock.symbol} onClick={() => selectStock(stock)}>
-                        <strong>{stock.symbol}</strong> - {stock.name}
-                      </li>
-                    ))
-                  ) : (
-                    <li>No matching stocks found</li>
+        <div className='dashboard'>
+          {/* Analysis Form Card */}
+          <div className='card analysis-form-card'>
+            <h2 className='card-title'>Stock Analysis</h2>
+            <form onSubmit={handleSubmit} className='analysis-form'>
+              <div className='form-group'>
+                <label htmlFor='ticker'>Stock Ticker Symbol:</label>
+                <div className='autocomplete-container'>
+                  <input
+                    type='text'
+                    id='ticker'
+                    value={ticker}
+                    onChange={e => {
+                      setTicker(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    placeholder='Enter ticker symbol (e.g., AAPL, MSFT)'
+                  />
+                  {showSuggestions && ticker.length > 0 && (
+                    <ul className='suggestions-list'>
+                      {filteredStocks.length > 0 ? (
+                        filteredStocks.map(stock => (
+                          <li
+                            key={stock.symbol}
+                            onClick={() => selectStock(stock)}
+                          >
+                            <strong>{stock.symbol}</strong> - {stock.name}
+                          </li>
+                        ))
+                      ) : (
+                        <li>No matching stocks found</li>
+                      )}
+                    </ul>
                   )}
-                </ul>
-              )}
-            </div>
-          </div>
-
-          <div className='form-row'>
-            <div className='form-group'>
-              <label htmlFor='startDate'>Start Date:</label>
-              <input
-                type='date'
-                id='startDate'
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-              />
-            </div>
-
-            <div className='form-group'>
-              <label htmlFor='endDate'>End Date:</label>
-              <input
-                type='date'
-                id='endDate'
-                value={endDate}
-                onChange={e => setEndDate(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className='form-row'>
-            <div className='form-group'>
-              <label htmlFor='shortWindow'>Short-term MA Window:</label>
-              <input
-                type='number'
-                id='shortWindow'
-                value={shortWindow}
-                onChange={e => setShortWindow(parseInt(e.target.value, 10))}
-                min='5'
-                max='100'
-              />
-            </div>
-
-            <div className='form-group'>
-              <label htmlFor='longWindow'>Long-term MA Window:</label>
-              <input
-                type='number'
-                id='longWindow'
-                value={longWindow}
-                onChange={e => setLongWindow(parseInt(e.target.value, 10))}
-                min='20'
-                max='500'
-              />
-            </div>
-          </div>
-
-          <button type='submit' className='submit-button' disabled={loading}>
-            {loading ? 'Analyzing...' : 'Analyze Stock'}
-          </button>
-        </form>
-
-        {loading && (
-          <div className='loading-container'>
-            <div className='spinner'></div>
-            <p>Analyzing stock data... This may take a moment.</p>
-          </div>
-        )}
-
-        {error && (
-          <div className='error-message'>
-            <p>Error: {error}</p>
-          </div>
-        )}
-
-        {results && (
-          <div className='results-container'>
-            <h2>Analysis Results for {ticker}</h2>
-
-            <div className='summary-container'>
-              <h3>Performance Summary</h3>
-              <div className='summary-grid'>
-                <div className='summary-item'>
-                  <span className='summary-label'>Period:</span>
-                  <span className='summary-value'>
-                    {results.summary.period_start} to{' '}
-                    {results.summary.period_end}
-                  </span>
-                </div>
-                <div className='summary-item'>
-                  <span className='summary-label'>Market Return:</span>
-                  <span className='summary-value'>
-                    {results.summary.market_return.toFixed(2)}%
-                  </span>
-                </div>
-                <div className='summary-item'>
-                  <span className='summary-label'>Strategy Return:</span>
-                  <span className='summary-value'>
-                    {results.summary.strategy_return.toFixed(2)}%
-                  </span>
-                </div>
-                <div className='summary-item'>
-                  <span className='summary-label'>Annual Market Return:</span>
-                  <span className='summary-value'>
-                    {results.summary.market_annual_return.toFixed(2)}%
-                  </span>
-                </div>
-                <div className='summary-item'>
-                  <span className='summary-label'>Annual Strategy Return:</span>
-                  <span className='summary-value'>
-                    {results.summary.strategy_annual_return.toFixed(2)}%
-                  </span>
-                </div>
-                <div className='summary-item'>
-                  <span className='summary-label'>Sharpe Ratio:</span>
-                  <span className='summary-value'>
-                    {results.summary.sharpe_ratio.toFixed(2)}
-                  </span>
-                </div>
-                <div className='summary-item'>
-                  <span className='summary-label'>Total Trades:</span>
-                  <span className='summary-value'>
-                    {results.summary.total_trades}
-                  </span>
-                </div>
-                <div className='summary-item'>
-                  <span className='summary-label'>Buy Signals:</span>
-                  <span className='summary-value'>
-                    {results.summary.buy_signals}
-                  </span>
-                </div>
-                <div className='summary-item'>
-                  <span className='summary-label'>Sell Signals:</span>
-                  <span className='summary-value'>
-                    {results.summary.sell_signals}
-                  </span>
                 </div>
               </div>
-            </div>
 
-            <div className='charts-gallery'>
-              {getChartDataFromResults().map((chart, index) => (
-                <div className='chart-container' key={index}>
-                  <h3>{chart.title}</h3>
-                  <div className='chart-wrapper'>
-                    <Chart
-                      data={chart.data}
-                      layout={chart.layout}
-                      config={{ responsive: true, displayModeBar: false }}
-                      onFullscreen={() => openFullscreen(chart)}
-                    />
-                  </div>
-                  <IconButton
-                    className='chart-fullscreen-button'
-                    onClick={() => openFullscreen(chart)}
-                  >
-                    <FullscreenIcon />
-                  </IconButton>
+              <div className='form-row'>
+                <div className='form-group'>
+                  <label htmlFor='startDate'>Start Date:</label>
+                  <input
+                    type='date'
+                    id='startDate'
+                    value={startDate}
+                    onChange={e => setStartDate(e.target.value)}
+                  />
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </main>
 
-      <footer>
-        <p>Stock Data Analysis Tool - &copy; 2025</p>
-      </footer>
+                <div className='form-group'>
+                  <label htmlFor='endDate'>End Date:</label>
+                  <input
+                    type='date'
+                    id='endDate'
+                    value={endDate}
+                    onChange={e => setEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className='form-row'>
+                <div className='form-group'>
+                  <label htmlFor='shortWindow'>Short-term MA Window:</label>
+                  <input
+                    type='number'
+                    id='shortWindow'
+                    value={shortWindow}
+                    onChange={e => setShortWindow(parseInt(e.target.value, 10))}
+                    min='5'
+                    max='100'
+                  />
+                </div>
+
+                <div className='form-group'>
+                  <label htmlFor='longWindow'>Long-term MA Window:</label>
+                  <input
+                    type='number'
+                    id='longWindow'
+                    value={longWindow}
+                    onChange={e => setLongWindow(parseInt(e.target.value, 10))}
+                    min='20'
+                    max='500'
+                  />
+                </div>
+              </div>
+
+              <button
+                type='submit'
+                className='submit-button'
+                disabled={loading}
+              >
+                {loading ? 'Analyzing...' : 'Analyze Stock'}
+              </button>
+            </form>
+          </div>
+
+          {loading && (
+            <div className='card loading-card'>
+              <div className='spinner'></div>
+              <p>Analyzing stock data... This may take a moment.</p>
+            </div>
+          )}
+
+          {error && (
+            <div className='card error-card'>
+              <p>Error: {error}</p>
+            </div>
+          )}
+
+          {results && (
+            <>
+              {/* Stats Cards */}
+              <div className='stats-cards'>
+                <div className='card stat-card'>
+                  <div className='stat-icon'>📈</div>
+                  <div className='stat-content'>
+                    <h3>Market Return</h3>
+                    <p className='stat-value'>
+                      {results.summary.market_return.toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+
+                <div className='card stat-card'>
+                  <div className='stat-icon'>💹</div>
+                  <div className='stat-content'>
+                    <h3>Strategy Return</h3>
+                    <p className='stat-value'>
+                      {results.summary.strategy_return.toFixed(2)}%
+                    </p>
+                  </div>
+                </div>
+
+                <div className='card stat-card'>
+                  <div className='stat-icon'>🔄</div>
+                  <div className='stat-content'>
+                    <h3>Total Trades</h3>
+                    <p className='stat-value'>{results.summary.total_trades}</p>
+                  </div>
+                </div>
+
+                <div className='card stat-card'>
+                  <div className='stat-icon'>⚖️</div>
+                  <div className='stat-content'>
+                    <h3>Sharpe Ratio</h3>
+                    <p className='stat-value'>
+                      {results.summary.sharpe_ratio.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Card */}
+              <div className='card summary-card'>
+                <h2 className='card-title'>Performance Summary for {ticker}</h2>
+                <div className='summary-grid'>
+                  <div className='summary-item'>
+                    <span className='summary-label'>Period:</span>
+                    <span className='summary-value'>
+                      {results.summary.period_start} to{' '}
+                      {results.summary.period_end}
+                    </span>
+                  </div>
+                  <div className='summary-item'>
+                    <span className='summary-label'>Annual Market Return:</span>
+                    <span className='summary-value'>
+                      {results.summary.market_annual_return.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className='summary-item'>
+                    <span className='summary-label'>
+                      Annual Strategy Return:
+                    </span>
+                    <span className='summary-value'>
+                      {results.summary.strategy_annual_return.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className='summary-item'>
+                    <span className='summary-label'>Buy Signals:</span>
+                    <span className='summary-value'>
+                      {results.summary.buy_signals}
+                    </span>
+                  </div>
+                  <div className='summary-item'>
+                    <span className='summary-label'>Sell Signals:</span>
+                    <span className='summary-value'>
+                      {results.summary.sell_signals}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Charts Gallery */}
+              <div className='charts-gallery'>
+                {getChartDataFromResults().map((chart, index) => (
+                  <div className='card chart-card' key={index}>
+                    <div className='chart-header'>
+                      <h3>{chart.title}</h3>
+                      <IconButton
+                        className='chart-fullscreen-button'
+                        onClick={() => openFullscreen(chart)}
+                      >
+                        <FullscreenIcon />
+                      </IconButton>
+                    </div>
+                    <div className='chart-wrapper'>
+                      <Chart
+                        data={chart.data}
+                        layout={chart.layout}
+                        config={{ responsive: true, displayModeBar: true }}
+                        onFullscreen={() => openFullscreen(chart)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Fullscreen Dialog */}
       <Dialog
