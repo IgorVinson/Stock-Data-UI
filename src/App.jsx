@@ -45,7 +45,7 @@ function App() {
   const fetchPopularStocks = async () => {
     try {
       const response = await fetch(
-        'http://igorvinson.pythonanywhere.com/api/stocks'
+        'https://igorvinson.pythonanywhere.com/api/stocks'
       );
       if (response.ok) {
         const data = await response.json();
@@ -72,7 +72,7 @@ function App() {
 
     try {
       const response = await fetch(
-        'http://igorvinson.pythonanywhere.com/api/analyze',
+        'https://igorvinson.pythonanywhere.com/api/analyze',
         {
           method: 'POST',
           headers: {
